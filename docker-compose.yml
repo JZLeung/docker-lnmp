@@ -1,0 +1,23 @@
+version: '2'
+services:
+  nginx:
+    image: nginx:1.13
+    ports: 
+      - "127.0.0.1:6666:80"
+    volumes:
+      - ./www:/usr/share/nginx/html:rw
+      - ./logs/nginx/:/var/log/nginx:rw
+      - ./conf/nginx/conf.d:/etc/nginx/conf.d/:ro
+    links:
+      - php:fpm
+    depends_on:
+      - php
+
+  php:
+    build: ./conf/php
+    ports: 
+      - "9000:9000"
+    volumes:
+      - ./www:/usr/share/nginx/html:rw
+      - ./logs/php/:/var/log/php:rw
+
