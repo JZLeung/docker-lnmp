@@ -1,0 +1,58 @@
+version: '2'
+
+services:
+  # web server
+  nginx:
+    image: nginx:latest
+    ports:
+      - '8081:8081'
+      - '8082:8082'
+    volumes:
+      # app
+      - ./app:/usr/share/nginx/html:rw
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/:/etc/nginx/conf.d/:rw
+    links:
+      - mysql:mysql
+      - fpm:__DOCKER_PHP_FPM__
+      - redis:redis
+
+  # php-fpm
+  fpm:
+    build: ./php-fpm
+    ports:
+      - '9000'
+    volumes:
+      - ./app:/usr/share/nginx/html
+    links:
+      - mysql:mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5
+    links:
+      - mysql:mysql
+    depends_on:
+      - mysql
+    ports:
+      - '8089:80'
+    environment:
+      PMA_HOST: 'mysql'
+
+  redis:
+    image: redis:latest
+    command: ['redis-server', '--appendonly', 'yes']
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis:/data
+
+  # database
+  mysql:
+    image: mysql:5
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
